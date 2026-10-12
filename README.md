@@ -5,7 +5,8 @@ por columna, y descubre quién se quedó a solas con la víctima. Los casos van 
 un único `index.html`.
 
 **Jugar:** https://spyder-cripto.github.io/crimenes-de-epoca-edad-media/ · Y en otras épocas:
-[cinco crímenes en cinco mundos](https://spyder-cripto.github.io/crimenes-de-epoca/).
+[cinco crímenes en cinco mundos](https://spyder-cripto.github.io/crimenes-de-epoca/) · El más difícil:
+[el Gran Maestro, en Roma](https://spyder-cripto.github.io/crimenes-de-epoca-gran-maestro/).
 
 ![Crímenes de época: la Edad Media](captura.png)
 

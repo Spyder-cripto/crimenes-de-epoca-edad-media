@@ -6,7 +6,7 @@
 <title>Crímenes de época: la Edad Media</title>
 <meta name="description" content="Cinco crímenes en la Edad Media, con caballeros y nobles: coloca a cada sospechoso, uno por fila y por columna, y descubre al asesino.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;1,400&family=Alegreya+SC:wght@700&family=Cinzel:wght@700&family=Cinzel+Decorative:wght@700&family=Grenze+Gotisch:wght@600;700&family=Orbitron:wght@600;700&family=Pirata+One&family=Rye&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,700;1,400&family=Alegreya+SC:wght@700&family=Cinzel:wght@700&family=Cinzel+Decorative:wght@700&family=Grenze+Gotisch:wght@600;700&family=Marcellus&family=Marcellus+SC&family=Orbitron:wght@600;700&family=Pirata+One&family=Rye&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
 <style>
 :root{
   --papel:#ece4f2; --papel2:#e3d8ec; --tinta:#2c2531; --tinta2:#4a4152; --acento:#8a5fb6; --acento2:#6c4796;
@@ -144,7 +144,7 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
     <p class="lema">Cinco crímenes entre caballeros y nobles. Coloca a cada sospechoso en su sitio y descubre quién se quedó a solas con la víctima.</p>
   </div>
   <div id="casos"></div>
-  <p class="otra">Y en otras épocas: <a href="https://spyder-cripto.github.io/crimenes-de-epoca/">cinco crímenes en cinco mundos →</a></p>
+  <p class="otra">Y en otras épocas: <a href="https://spyder-cripto.github.io/crimenes-de-epoca/">cinco crímenes en cinco mundos →</a><br>Y si buscas el más difícil: <a href="https://spyder-cripto.github.io/crimenes-de-epoca-gran-maestro/">el Gran Maestro, en Roma →</a></p>
   <div class="como">
     <h2>Cómo se juega</h2>
     <p>• En cada <b>fila</b> y en cada <b>columna</b> hay exactamente <b>una persona</b>.</p>
@@ -1787,11 +1787,17 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
     const tinta = (arte.paleta && arte.paleta.tinta) || '#2c2531';
     const texUsadas = [...new Set(Object.values(caso.zonasInfo).map((i) => i.tex))];
     let s = '<defs>' + texUsadas.map((t) => { if (!arte.texturas[t]) throw new Error('falta la textura ' + t); return arte.texturas[t](); }).join('') +
-      `<pattern id="t-sombra" patternUnits="userSpaceOnUse" width="16" height="16" patternTransform="rotate(45)"><rect width="16" height="16" fill="#30406a" opacity=".13"/><line x1="0" y1="0" x2="0" y2="16" stroke="#30406a" stroke-width="5" opacity=".22"/></pattern></defs>`;
+      // casillas marcadas: la sombra rayada del Oeste, o lo que dé el mundo (arte.celdaMarcada: los mosaicos de Roma)
+      (arte.celdaMarcada ? arte.celdaMarcada() : `<pattern id="t-sombra" patternUnits="userSpaceOnUse" width="16" height="16" patternTransform="rotate(45)"><rect width="16" height="16" fill="#30406a" opacity=".13"/><line x1="0" y1="0" x2="0" y2="16" stroke="#30406a" stroke-width="5" opacity=".22"/></pattern>`) + '</defs>';
     s += `<rect x="${ML - 12}" y="${MT - 12}" width="${N * 100 + 24}" height="${N * 100 + 24}" rx="12" fill="${(arte.paleta && arte.paleta.marco) || '#f4eef7'}"/>`;
     for (let f = 0; f < N; f++) for (let c = 0; c < N; c++) s += `<rect x="${X(c)}" y="${Y(f)}" width="100" height="100" fill="url(#t-${caso.zonasInfo[z(f, c)].tex})"/>`;
-    // sombra (Oeste)
-    if (caso.sombra) for (let f = 0; f < N; f++) for (let c = 0; c < N; c++) if (caso.sombra[f][c] === 's') s += `<rect x="${X(c)}" y="${Y(f)}" width="100" height="100" fill="url(#t-sombra)"/>`;
+    // sombra (Oeste) o mosaicos (Roma); el mundo puede añadir un remate encima (arte.remateMarcada: borde del mosaico)
+    if (caso.sombra) for (let f = 0; f < N; f++) for (let c = 0; c < N; c++) if (caso.sombra[f][c] === 's') {
+      s += `<rect x="${X(c)}" y="${Y(f)}" width="100" height="100" fill="url(#t-sombra)"/>`;
+      const m = (ff, cc) => ff >= 0 && cc >= 0 && ff < N && cc < N && caso.sombra[ff][cc] === 's';
+      // vecinas con mosaico: las cuatro de los lados y las cuatro en diagonal (para no adornar el interior de un bloque)
+      if (arte.remateMarcada) s += `<g transform="translate(${X(c)} ${Y(f)})">${arte.remateMarcada({ arriba: m(f - 1, c), abajo: m(f + 1, c), izq: m(f, c - 1), der: m(f, c + 1), ai: m(f - 1, c - 1), ad: m(f - 1, c + 1), bi: m(f + 1, c - 1), bd: m(f + 1, c + 1) })}</g>`;
+    }
     let r = '';
     for (let k = 1; k < N; k++) r += `M${X(k)} ${Y(0)}V${Y(N)}M${X(0)} ${Y(k)}H${X(N)}`;
     s += `<path d="${r}" stroke="${tinta}" stroke-width="2.2" opacity=".35"/>`;
@@ -1885,12 +1891,19 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
       regla: 'Oxígeno y androides', textoRegla: 'Las <b>zonas sin aire</b> tienen el borde a <b>rayas amarillas y negras</b>. Los <b>humanos</b> no pueden estar en ellas; los <b>alienígenas</b> solo pueden estar en ellas; los <b>androides</b>, donde quieran, pero <b>dos androides nunca se tocan</b>, ni siquiera en diagonal.',
       clases: { H: 'No puede estar en una zona sin aire.', A: 'En cualquier zona, sin tocar a otro androide.', X: 'Solo puede estar en una zona sin aire.' },
     },
+    roma: {
+      fuente: "'Marcellus SC','Cinzel',Georgia,serif", nombre: "'Marcellus',Georgia,serif", aros: { P: '#7a54a8', E: '#a5835a', C: '#b8323a' }, fondoFicha: { P: '#e9def4', E: '#f1e5cd', C: '#f6dcd8' },
+      regla: 'La conjura', textoRegla: 'Los suelos de <b>mosaico</b> (las casillas marcadas) son cosa de señores: un <b>patricio</b> está siempre sobre mosaico y un <b>esclavo</b>, nunca, aunque en la casilla haya un mueble que se ocupa, como un lecho. Los <b>conjurados</b> pueden estar en cualquier casilla, con mosaico o sin él, pero <b>nunca hay dos conjurados en la misma zona</b>: no quieren que los vean juntos.',
+      clases: { P: 'Siempre sobre mosaico.', E: 'Nunca sobre mosaico.', C: 'Donde quiera, pero nunca en la zona de otro conjurado.' },
+      // casillas marcadas (los mosaicos): qué se le dice a quien la regla obliga a pisarlas o le prohíbe pisarlas
+      celdaSi: 'tiene que estar sobre un mosaico', celdaNo: 'no puede estar sobre un mosaico',
+    },
   };
   // los casos de la Edad Media sin entrada propia usan el aspecto del torneo (el del libro)
   const uiDe = (c) => UI[c.id] || UI.torneo;
   const COLECCION = window.COLECCION || { titulo: 'Crímenes de época' };
-  const FEMENINO = { Marinero: 'Marinera', Plebeyo: 'Plebeya', Forastero: 'Forastera', Vaquero: 'Vaquera', Humano: 'Humana' };
-  const NIVEL_COLOR = { 'Fácil': '#2f7d3a', 'Medio': '#2d6fae', 'Difícil': '#c06a1a', 'Experto': '#b8323a', 'Maestro': '#6c2f9a' };
+  const FEMENINO = { Marinero: 'Marinera', Plebeyo: 'Plebeya', Forastero: 'Forastera', Vaquero: 'Vaquera', Humano: 'Humana', Patricio: 'Patricia', Esclavo: 'Esclava', Conjurado: 'Conjurada' };
+  const NIVEL_COLOR = { 'Fácil': '#2f7d3a', 'Medio': '#2d6fae', 'Difícil': '#c06a1a', 'Experto': '#b8323a', 'Maestro': '#6c2f9a', 'Gran Maestro': '#8a6418' };
 
   // ---------- secretos ----------
   function descifrar(b64) {
@@ -1950,8 +1963,8 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
       if ((e.noPuede || []).includes(p.clase) && t === e.atributo) return `${p.nombre} es ${clase}: ${U.clases[p.clase].toLowerCase()}`;
     }
     if (e.tipo === 'sombra') {
-      if ((e.debe || []).includes(p.clase) && !sombra(k)) return `${p.nombre} es ${nombreClase(p).toLowerCase()}: tiene que estar a la sombra (casillas rayadas).`;
-      if ((e.noPuede || []).includes(p.clase) && sombra(k)) return `${p.nombre} es ${nombreClase(p).toLowerCase()}: tiene que estar al sol.`;
+      if ((e.debe || []).includes(p.clase) && !sombra(k)) return `${p.nombre} es ${nombreClase(p).toLowerCase()}: ${U.celdaSi || 'tiene que estar a la sombra (casillas rayadas)'}.`;
+      if ((e.noPuede || []).includes(p.clase) && sombra(k)) return `${p.nombre} es ${nombreClase(p).toLowerCase()}: ${U.celdaNo || 'tiene que estar al sol'}.`;
     }
     const pista = (t) => `${p.nombre}: «${t}»`;
     const plano = (h) => h.replace(/<[^>]+>/g, '');
@@ -1983,6 +1996,7 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
       const a = est.pos[i], b = est.pos[j];
       if (F(a) === F(b)) { add(i, `Comparte fila con ${P[j].nombre}.`); add(j, `Comparte fila con ${P[i].nombre}.`); }
       if (Co(a) === Co(b)) { add(i, `Comparte columna con ${P[j].nombre}.`); add(j, `Comparte columna con ${P[i].nombre}.`); }
+      if (e.distintaZona && e.distintaZona.includes(P[i].clase) && e.distintaZona.includes(P[j].clase) && zona(a) === zona(b)) { add(i, `Está en la misma zona que ${P[j].nombre}, y dos conjurados nunca están juntos.`); add(j, `Está en la misma zona que ${P[i].nombre}, y dos conjurados nunca están juntos.`); }
       if (e.noDiagonal && e.noDiagonal.includes(P[i].clase) && e.noDiagonal.includes(P[j].clase) && diag(a, b)) { add(i, `Toca en diagonal a ${P[j].nombre}, y dos androides nunca se tocan.`); add(j, `Toca en diagonal a ${P[i].nombre}, y dos androides nunca se tocan.`); }
     }
     for (const i of puestos) {
@@ -2188,11 +2202,13 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
     pistaCaja.hidden = false;
     pistaCaja.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-family:var(--fuente-nombre);font-size:20px">Pista ${n + 1} de ${PISTAS.length}</b><button class="boton icono" data-a="cerrar" aria-label="Cerrar la pista">✕</button></div>` +
       `<p style="margin:4px 0">${p.empujon}</p>` +
-      (completo ? `<p style="margin:6px 0">${p.texto}</p><div class="pie" style="margin-top:8px"><button class="boton principal" data-a="colocar">Colocar ${o_(p.quien.map((id) => P[IDX[id]].nombre)).replace(/ o /, ' y ')}</button></div>`
+      (completo ? `<p style="margin:6px 0">${p.texto}</p><div class="pie" style="margin-top:8px">${p.quien.length ? `<button class="boton principal" data-a="colocar">Colocar ${o_(p.quien.map((id) => P[IDX[id]].nombre)).replace(/ o /, ' y ')}</button>` : '<button class="boton principal" data-a="vale">Entendido</button>'}</div>`
         : '<div class="pie" style="margin-top:8px"><button class="boton" data-a="mas">Ver el razonamiento</button></div>');
     pistaCaja.querySelector('[data-a="cerrar"]').onclick = () => { ocultarPista(); pintar(); };
     const mas = pistaCaja.querySelector('[data-a="mas"]');
     if (mas) mas.onclick = () => mostrarPaso(n, true);
+    const vale = pistaCaja.querySelector('[data-a="vale"]');
+    if (vale) vale.onclick = () => { ocultarPista(); pintar(); };
     const col = pistaCaja.querySelector('[data-a="colocar"]');
     if (col) col.onclick = () => {
       apuntar();
@@ -2214,7 +2230,16 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
       });
       return;
     }
-    const n = PISTAS.findIndex((p) => p.quien.some((id) => est.pos[IDX[id]] !== SOL[IDX[id]]));
+    // la siguiente pista pendiente: la primera que coloca a alguien que aún no está en su sitio; las que no colocan a nadie
+    // (trozos del Gran Maestro) están pendientes si no se han visto y la siguiente que coloca aún no está cumplida
+    const falta = (p) => p.quien.some((id) => est.pos[IDX[id]] !== SOL[IDX[id]]);
+    const pendiente = (p, x) => {
+      if (p.quien.length) return falta(p);
+      if (est.pistasVistas.includes(x)) return false;
+      const sig = PISTAS.slice(x + 1).find((q) => q.quien.length);
+      return !sig || falta(sig);
+    };
+    const n = PISTAS.findIndex(pendiente);
     if (n < 0) { aviso('Ya están todos en su sitio: solo falta señalar al asesino.'); revisarFinal(true); return; }
     if (!est.pistasVistas.length) {
       abrirDialogo('<h2>¿Una pista?</h2><p style="text-align:center">La pista te enseña el siguiente paso de la deducción: primero un empujoncito y, si quieres, el razonamiento entero.</p><div class="pie"><button class="boton principal" data-a="si">Sí, una pista</button><button class="boton" data-a="no">Mejor sigo yo</button></div>', (c) => {
@@ -2230,7 +2255,7 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
   // ---------- final ----------
   function revisarFinal(forzar) {
     if (est.resuelto || est.pos.some((k) => k === null)) return;
-    if (!est.pos.every((k, i) => k === SOL[i])) { if (!forzar) { sonar('no'); aviso(`Ya están ${P.length === 9 ? 'los nueve' : 'todos'}… pero algo no cuadra. Repasa las pistas o pulsa «Comprobar».`, 5400); } return; }
+    if (!est.pos.every((k, i) => k === SOL[i])) { if (!forzar) { sonar('no'); aviso(`Ya están ${({ 9: 'los nueve', 10: 'los diez' })[P.length] || 'todos'}… pero algo no cuadra. Repasa las pistas o pulsa «Comprobar».`, 5400); } return; }
     sonar('bien'); setTimeout(preguntarAsesino, 450);
   }
   function preguntarAsesino() {
@@ -2268,6 +2293,7 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
   // dibujito de la regla especial: el objeto prohibido (gatos), el icono de la zona especial o una casilla a la sombra
   function iconoRegla() {
     const e = C.especial || {};
+    if (A.iconoRegla) return A.iconoRegla();
     if (e.tipo === 'nadieJunto') { const t = Object.entries(C.objetosInfo).find(([k]) => k === e.objeto); return t ? A.objetos[t[1].dib]({}) : ''; }
     if (e.tipo === 'sombra') return '<rect x="6" y="6" width="88" height="88" rx="10" fill="#f3e3c3" stroke="#2c2531" stroke-width="3"/><path d="M8 30L30 8M8 54L54 8M8 78L78 8M18 92L92 18M42 92L92 42M66 92L92 66" stroke="#30406a" stroke-width="7" opacity=".3"/>';
     const m = (A.marcos || {})[e.atributo];
@@ -2282,6 +2308,10 @@ dialog::backdrop{background:rgba(44,37,49,.45)}
     abrirDialogo(`<h2>${inicio ? C.titulo : 'Normas'}</h2>` +
       (inicio ? `<p style="text-align:center;font-style:italic">${C.entradilla}</p>` : '') +
       `<p>Averigua dónde estaba cada personaje y quién mató a <b>${P[VICTIMA].nombre}</b>.</p>` +
+      // el Gran Maestro avisa de su escalón: hace falta suponer algo dentro de otra suposición
+      (C.nivel === 'Gran Maestro' ? '<p style="background:#f6edd6;border:2px solid #8a6418;border-radius:12px;padding:8px 12px"><b>Caso de Gran Maestro.</b> En los casos anteriores bastaba con probar una casilla («¿y si estuviera aquí?») y ver que algo fallaba. Aquí llega un momento en que ninguna prueba sencilla falla a la vista: hace falta <b>una segunda prueba dentro de la primera</b> (cuando la segunda demuestra que la primera no puede ser, se tacha la casilla de la primera)… o dar con un razonamiento de conjunto, muy bien escondido, que la evita. Usa las notas sin miedo; si te atascas, las pistas te enseñan el camino de la doble prueba, paso a paso.' +
+        // si es robusto, la cuenta de zonas se dice en voz alta: ni contando se salta el paso doble
+        (C.nivel === 'Gran Maestro' ? ` <br><b>Una cuenta que ayuda:</b> ${P.length} personas y ${new Set(C.zonas.join('')).size} zonas; la víctima está con su asesino y ninguna zona queda vacía, así que solo una zona más tiene dos personas y las demás tienen una.` : '') + '</p>' : '') +
       '<p>• En cada <b>fila</b> y en cada <b>columna</b> hay exactamente <b>una persona</b>.</p>' +
       '<p>• Coloca a los sospechosos según sus pistas; la víctima va en la casilla que queda libre.</p>' +
       '<p>• El <b>asesino</b> es la única persona que estaba en la misma zona que la víctima.</p>' +
